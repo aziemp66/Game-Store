@@ -9,7 +9,7 @@ namespace GameStore.API.Entities
     public class Game
     {
         [JsonPropertyName("id")]
-        public required int Id { get; set; }
+        public int Id { get; set; }
         [JsonPropertyName("name")]
         public required string Name { get; set; }
         [JsonPropertyName("genre")]

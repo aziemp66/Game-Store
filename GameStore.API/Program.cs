@@ -2,6 +2,8 @@ using System.Text.Json;
 using GameStore.API.Entities;
 using GameStore.API.Mock;
 
+const string GetGameByIdRouteName = "GetGameById";
+
 List<Game> games = Mock.GetGameList();
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +31,14 @@ app.MapGet("/games/{id}", async (ctx) =>
 		ctx.Response.StatusCode = 404;
 		await ctx.Response.WriteAsJsonAsync(new { message = "Game not found." });
 	}
+}).WithName(GetGameByIdRouteName);
+
+app.MapPost("/games", (Game game) =>
+{
+	game.Id = games.Max(g => g.Id) + 1;
+	games.Add(game);
+
+	return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = game.Id }, game);
 });
 
 app.Run();
