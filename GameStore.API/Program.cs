@@ -9,15 +9,17 @@ List<Game> games = Mock.GetGameList();
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
+var gameRoutes = app.MapGroup("/games");
+
 app.MapGet("/", () => "Hello World!");
 
-app.MapGet("/games", async (ctx) =>
+gameRoutes.MapGet("/", async (ctx) =>
 {
 	ctx.Response.ContentType = "application/json";
 	await JsonSerializer.SerializeAsync(ctx.Response.Body, games);
 });
 
-app.MapGet("/games/{id}", async (ctx) =>
+gameRoutes.MapGet("/{id}", async (ctx) =>
 {
 	ctx.Response.ContentType = "application/json";
 	int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
@@ -33,7 +35,7 @@ app.MapGet("/games/{id}", async (ctx) =>
 	}
 }).WithName(GetGameByIdRouteName);
 
-app.MapPost("/games", (Game game) =>
+gameRoutes.MapPost("/", (Game game) =>
 {
 	game.Id = games.Max(g => g.Id) + 1;
 	games.Add(game);
@@ -41,7 +43,7 @@ app.MapPost("/games", (Game game) =>
 	return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = game.Id }, game);
 });
 
-app.MapPut("/games/{id}", async (ctx) =>
+gameRoutes.MapPut("/{id}", async (ctx) =>
 {
 	ctx.Response.ContentType = "application/json";
 	int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
@@ -80,7 +82,7 @@ app.MapPut("/games/{id}", async (ctx) =>
 	await ctx.Response.WriteAsJsonAsync(new { message = "Game updated." });
 });
 
-app.MapDelete("/games/{id}", async (ctx) =>
+gameRoutes.MapDelete("/games/{id}", async (ctx) =>
 {
 	ctx.Response.ContentType = "application/json";
 	int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
