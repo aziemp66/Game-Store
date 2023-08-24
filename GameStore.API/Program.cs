@@ -15,4 +15,20 @@ app.MapGet("/games", async (ctx) =>
 	await JsonSerializer.SerializeAsync(ctx.Response.Body, games);
 });
 
+app.MapGet("/games/{id}", async (ctx) =>
+{
+	ctx.Response.ContentType = "application/json";
+	int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
+	try
+	{
+		Game game = games.First(g => g.Id == id);
+		await JsonSerializer.SerializeAsync(ctx.Response.Body, game);
+	}
+	catch (System.Exception)
+	{
+		ctx.Response.StatusCode = 404;
+		await ctx.Response.WriteAsJsonAsync(new { message = "Game not found." });
+	}
+});
+
 app.Run();
