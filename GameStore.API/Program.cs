@@ -77,7 +77,7 @@ app.MapPut("/games/{id}", async (ctx) =>
 	};
 
 	ctx.Response.Headers.Add("Location", $"{ctx.Request.Scheme}://{ctx.Request.Host}/games/{game.Id}");
-	await JsonSerializer.SerializeAsync(ctx.Response.Body, game);
+	await ctx.Response.WriteAsJsonAsync(new { message = "Game updated." });
 });
 
 app.Run();
