@@ -9,7 +9,7 @@ List<Game> games = Mock.GetGameList();
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-var gameRoutes = app.MapGroup("/games");
+var gameRoutes = app.MapGroup("/games").WithParameterValidation();
 
 app.MapGet("/", () => "Hello World!");
 

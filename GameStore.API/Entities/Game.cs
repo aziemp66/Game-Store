@@ -24,7 +24,7 @@ namespace GameStore.API.Entities
 
         [JsonPropertyName("price")]
         [Required]
-        [Range(1, 1000)]
+        [Range(0, 1000)]
         public required decimal Price { get; set; }
 
         [JsonPropertyName("release_date")]
