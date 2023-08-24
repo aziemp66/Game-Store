@@ -80,4 +80,26 @@ app.MapPut("/games/{id}", async (ctx) =>
 	await ctx.Response.WriteAsJsonAsync(new { message = "Game updated." });
 });
 
+app.MapDelete("/games/{id}", async (ctx) =>
+{
+	ctx.Response.ContentType = "application/json";
+	int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
+
+	Game game;
+	try
+	{
+		game = games.First(g => g.Id == id);
+	}
+	catch (System.Exception)
+	{
+		ctx.Response.StatusCode = 404;
+		await ctx.Response.WriteAsJsonAsync(new { message = "Game not found." });
+		return;
+	}
+
+	games.Remove(game);
+
+	await ctx.Response.WriteAsJsonAsync(new { message = "Game deleted." });
+});
+
 app.Run();
