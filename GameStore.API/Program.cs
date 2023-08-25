@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // for real database use AddScoped
 builder.Services.AddSingleton<IGamesRepository, InMemGamesRepository>();
 
+var connString = builder.Configuration.GetConnectionString("GameStoreContext");
+
 var app = builder.Build();
 
 app.MapGet("/", () => "Hello World!");
