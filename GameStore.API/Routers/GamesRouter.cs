@@ -1,112 +1,156 @@
 using GameStore.API.Entities;
-using GameStore.API.Mock;
 using System.Text.Json;
+using GameStore.API.Repositories;
 
 namespace GameStore.API.Routers;
 
 public static class GamesRouter
 {
-
     const string GetGameByIdRouteName = "GetGameById";
-
-    static List<Game> games = MockData.GetGameList();
 
     public static RouteGroupBuilder MapGamesRouter(this IEndpointRouteBuilder routes)
     {
-
+        InMemGamesRepository gameStoreRepositories = new();
         var gameRoutes = routes.MapGroup("/games").WithParameterValidation();
 
-
-        gameRoutes.MapGet("/", async (ctx) =>
-        {
-            ctx.Response.ContentType = "application/json";
-            await JsonSerializer.SerializeAsync(ctx.Response.Body, games);
-        });
-
-        gameRoutes.MapGet("/{id}", async (ctx) =>
-        {
-            ctx.Response.ContentType = "application/json";
-            int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
-            try
+        gameRoutes.MapGet(
+            "/",
+            () =>
             {
-                Game game = games.First(g => g.Id == id);
-                await JsonSerializer.SerializeAsync(ctx.Response.Body, game);
+                try
+                {
+                    var games = gameStoreRepositories.GetAll();
+                    return Results.Ok(games);
+                }
+                catch (System.Exception)
+                {
+                    return Results.Problem("internal server error");
+                }
             }
-            catch (System.Exception)
+        );
+
+        gameRoutes
+            .MapGet(
+                "/{id:int}",
+                (int id) =>
+                {
+                    try
+                    {
+                        var game = gameStoreRepositories.GetById(id);
+                        return Results.Ok(game);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        return Results.NotFound(e.Message);
+                    }
+                    catch (ArgumentNullException e)
+                    {
+                        return Results.NotFound(e.Message);
+                    }
+                    catch (Exception)
+                    {
+                        return Results.Problem("internal server error");
+                    }
+                }
+            )
+            .WithName(GetGameByIdRouteName);
+
+        gameRoutes.MapPost(
+            "/",
+            (Game game) =>
             {
-                ctx.Response.StatusCode = 404;
-                await ctx.Response.WriteAsJsonAsync(new { message = "Game not found." });
+                try
+                {
+                    var result = gameStoreRepositories.Create(game);
+                    return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = result.Id }, result);
+                }
+                catch (InvalidOperationException e)
+                {
+                    return Results.Problem(e.Message);
+                }
+                catch (ArgumentNullException e)
+                {
+                    return Results.Problem(e.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("internal server error");
+                }
             }
-        }).WithName(GetGameByIdRouteName);
-
-        gameRoutes.MapPost("/", (Game game) =>
-        {
-            game.Id = games.Max(g => g.Id) + 1;
-            games.Add(game);
-
-            return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = game.Id }, game);
-        });
-
-        gameRoutes.MapPut("/{id}", async (ctx) =>
-        {
-            ctx.Response.ContentType = "application/json";
-            int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
-
-            Game game;
-            try
+        );
+        gameRoutes.MapPut(
+            "/{id:int}", (int id, Game updatedGame) =>
             {
-                game = games.First(g => g.Id == id);
+                try
+                {
+                    gameStoreRepositories.GetById(id);
+                }
+                catch (InvalidOperationException e)
+                {
+                    return Results.NotFound(e.Message);
+                }
+                catch (ArgumentNullException e)
+                {
+                    return Results.NotFound(e.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("internal server error");
+                }
+
+                try
+                {
+                    gameStoreRepositories.Update(updatedGame);
+                    return Results.Ok(updatedGame);
+                }
+                catch (ArgumentNullException)
+                {
+                    return Results.NotFound();
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("internal server error");
+                }
             }
-            catch (System.Exception)
+        );
+
+        gameRoutes.MapDelete(
+            "/{id:int}",
+            (int id) =>
             {
-                ctx.Response.StatusCode = 404;
-                await ctx.Response.WriteAsJsonAsync(new { message = "Game not found." });
-                return;
+                Game game;
+                try
+                {
+                    game = gameStoreRepositories.GetById(id);
+                }
+                catch (InvalidOperationException e)
+                {
+                    return Results.NotFound(e.Message);
+                }
+                catch (ArgumentNullException e)
+                {
+                    return Results.NotFound(e.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("internal server error");
+                }
+
+                try
+                {
+                    gameStoreRepositories.Delete(id);
+                    return Results.Ok();
+                }
+                catch (ArgumentNullException e)
+                {
+                    return Results.NotFound(e.Message);
+                }
+                catch (Exception)
+                {
+                    return Results.Problem("internal server error");
+                }
             }
-
-            Game? UpdateGame = await ctx.Request.ReadFromJsonAsync<Game>();
-            if (UpdateGame is null)
-            {
-                ctx.Response.StatusCode = 400;
-                await ctx.Response.WriteAsJsonAsync(new { message = "Invalid game data." });
-                return;
-            }
-
-            game = new Game
-            {
-                Id = id,
-                Name = UpdateGame.Name,
-                Genre = UpdateGame.Genre,
-                Price = UpdateGame.Price,
-                ReleaseDate = UpdateGame.ReleaseDate,
-                ImageUri = UpdateGame.ImageUri
-            };
-
-            ctx.Response.Headers.Add("Location", $"{ctx.Request.Scheme}://{ctx.Request.Host}/games/{game.Id}");
-            await ctx.Response.WriteAsJsonAsync(new { message = "Game updated." });
-        });
-
-        gameRoutes.MapDelete("/{id}", async (ctx) =>
-        {
-            ctx.Response.ContentType = "application/json";
-            int id = Convert.ToInt32(ctx.Request.RouteValues["id"]);
-
-            Game game;
-            try
-            {
-                game = games.First(g => g.Id == id);
-            }
-            catch (System.Exception)
-            {
-                ctx.Response.StatusCode = 404;
-                await ctx.Response.WriteAsJsonAsync(new { message = "Game not found." });
-                return;
-            }
-
-            games.Remove(game);
-
-            await ctx.Response.WriteAsJsonAsync(new { message = "Game deleted." });
-        });
+        );
         return gameRoutes;
     }
 }
