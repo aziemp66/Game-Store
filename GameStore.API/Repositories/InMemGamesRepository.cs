@@ -1,11 +1,57 @@
 using GameStore.API.Entities;
-using GameStore.API.Mock;
 
 namespace GameStore.API.Repositories;
 
-public class InMemGamesRepository
+public class InMemGamesRepository : IGamesRepository
 {
-    private static readonly List<Game> games = MockData.GetGameList();
+    private readonly List<Game> games = new()
+        {
+            new Game
+            {
+                Id = 1,
+                Name = "The Witcher 3: Wild Hunt",
+                Genre = "Action RPG",
+                Price = 49.99m,
+                ReleaseDate = DateTime.Parse("2015-05-19"),
+                ImageUri = "https://placehold.co/100"
+            },
+            new Game
+            {
+                Id = 2,
+                Name = "Red Dead Redemption 2",
+                Genre = "Action Adventure",
+                Price = 59.99m,
+                ReleaseDate = DateTime.Parse("2018-10-26"),
+                ImageUri = "https://placehold.co/100"
+            },
+            new Game
+            {
+                Id = 3,
+                Name = "The Last of Us Part II",
+                Genre = "Action Adventure",
+                Price = 39.99m,
+                ReleaseDate = DateTime.Parse("2020-06-19"),
+                ImageUri = "https://placehold.co/100"
+            },
+            new Game
+            {
+                Id = 4,
+                Name = "Cyberpunk 2077",
+                Genre = "Action RPG",
+                Price = 59.99m,
+                ReleaseDate = DateTime.Parse("2020-12-10"),
+                ImageUri = "https://placehold.co/100"
+            },
+            new Game
+            {
+                Id = 5,
+                Name = "Assassin's Creed Valhalla",
+                Genre = "Action RPG",
+                Price = 49.99m,
+                ReleaseDate = DateTime.Parse("2020-11-10"),
+                ImageUri = "https://placehold.co/100"
+            }
+        };
 
     public IEnumerable<Game> GetAll()
     {

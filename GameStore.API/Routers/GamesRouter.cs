@@ -1,5 +1,4 @@
 using GameStore.API.Entities;
-using System.Text.Json;
 using GameStore.API.Repositories;
 
 namespace GameStore.API.Routers;
@@ -10,16 +9,15 @@ public static class GamesRouter
 
     public static RouteGroupBuilder MapGamesRouter(this IEndpointRouteBuilder routes)
     {
-        InMemGamesRepository gameStoreRepositories = new();
         var gameRoutes = routes.MapGroup("/games").WithParameterValidation();
 
         gameRoutes.MapGet(
             "/",
-            () =>
+            (IGamesRepository gamesRepository) =>
             {
                 try
                 {
-                    var games = gameStoreRepositories.GetAll();
+                    var games = gamesRepository.GetAll();
                     return Results.Ok(games);
                 }
                 catch (System.Exception)
@@ -32,11 +30,11 @@ public static class GamesRouter
         gameRoutes
             .MapGet(
                 "/{id:int}",
-                (int id) =>
+                (IGamesRepository gamesRepository, int id) =>
                 {
                     try
                     {
-                        var game = gameStoreRepositories.GetById(id);
+                        var game = gamesRepository.GetById(id);
                         return Results.Ok(game);
                     }
                     catch (InvalidOperationException e)
@@ -57,11 +55,11 @@ public static class GamesRouter
 
         gameRoutes.MapPost(
             "/",
-            (Game game) =>
+            (IGamesRepository gamesRepository, Game game) =>
             {
                 try
                 {
-                    var result = gameStoreRepositories.Create(game);
+                    var result = gamesRepository.Create(game);
                     return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = result.Id }, result);
                 }
                 catch (InvalidOperationException e)
@@ -79,11 +77,11 @@ public static class GamesRouter
             }
         );
         gameRoutes.MapPut(
-            "/{id:int}", (int id, Game updatedGame) =>
+            "/{id:int}", (IGamesRepository gamesRepository, int id, Game updatedGame) =>
             {
                 try
                 {
-                    gameStoreRepositories.GetById(id);
+                    gamesRepository.GetById(id);
                 }
                 catch (InvalidOperationException e)
                 {
@@ -101,7 +99,7 @@ public static class GamesRouter
                 try
                 {
                     updatedGame.Id = id;
-                    gameStoreRepositories.Update(updatedGame);
+                    gamesRepository.Update(updatedGame);
                     return Results.Ok(updatedGame);
                 }
                 catch (ArgumentNullException)
@@ -117,12 +115,12 @@ public static class GamesRouter
 
         gameRoutes.MapDelete(
             "/{id:int}",
-            (int id) =>
+            (IGamesRepository gamesRepository, int id) =>
             {
                 Game game;
                 try
                 {
-                    game = gameStoreRepositories.GetById(id);
+                    game = gamesRepository.GetById(id);
                 }
                 catch (InvalidOperationException e)
                 {
@@ -139,7 +137,7 @@ public static class GamesRouter
 
                 try
                 {
-                    gameStoreRepositories.Delete(id);
+                    gamesRepository.Delete(id);
                     return Results.Ok();
                 }
                 catch (ArgumentNullException e)
