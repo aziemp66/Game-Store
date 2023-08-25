@@ -93,13 +93,14 @@ public static class GamesRouter
                 {
                     return Results.NotFound(e.Message);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    return Results.Problem("internal server error");
+                    return Results.Problem($"internal server error : {e.Message}");
                 }
 
                 try
                 {
+                    updatedGame.Id = id;
                     gameStoreRepositories.Update(updatedGame);
                     return Results.Ok(updatedGame);
                 }
@@ -107,9 +108,9 @@ public static class GamesRouter
                 {
                     return Results.NotFound();
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    return Results.Problem("internal server error");
+                    return Results.Problem($"internal server error {e.Message}");
                 }
             }
         );
