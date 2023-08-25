@@ -1,3 +1,4 @@
+using GameStore.API.Dtos;
 using GameStore.API.Entities;
 using GameStore.API.Repositories;
 
@@ -17,7 +18,7 @@ public static class GamesRouter
             {
                 try
                 {
-                    var games = gamesRepository.GetAll();
+                    var games = gamesRepository.GetAll().Select(game => game.AsDto());
                     return Results.Ok(games);
                 }
                 catch (System.Exception)
@@ -34,7 +35,7 @@ public static class GamesRouter
                 {
                     try
                     {
-                        var game = gamesRepository.GetById(id);
+                        var game = gamesRepository.GetById(id).AsDto();
                         return Results.Ok(game);
                     }
                     catch (InvalidOperationException e)
@@ -55,8 +56,17 @@ public static class GamesRouter
 
         gameRoutes.MapPost(
             "/",
-            (IGamesRepository gamesRepository, Game game) =>
+            (IGamesRepository gamesRepository, CreateGameDto gameDto) =>
             {
+                var game = new Game()
+                {
+                    Name = gameDto.Name,
+                    Genre = gameDto.Genre,
+                    Price = gameDto.Price,
+                    ReleaseDate = gameDto.ReleaseDate,
+                    ImageUri = gameDto.ImageUri
+                };
+
                 try
                 {
                     var result = gamesRepository.Create(game);
@@ -77,8 +87,17 @@ public static class GamesRouter
             }
         );
         gameRoutes.MapPut(
-            "/{id:int}", (IGamesRepository gamesRepository, int id, Game updatedGame) =>
+            "/{id:int}", (IGamesRepository gamesRepository, int id, UpdateGameDto updatedGameDto) =>
             {
+                var updatedGame = new Game()
+                {
+                    Name = updatedGameDto.Name,
+                    Genre = updatedGameDto.Genre,
+                    Price = updatedGameDto.Price,
+                    ReleaseDate = updatedGameDto.ReleaseDate,
+                    ImageUri = updatedGameDto.ImageUri
+                };
+
                 try
                 {
                     gamesRepository.GetById(id);
