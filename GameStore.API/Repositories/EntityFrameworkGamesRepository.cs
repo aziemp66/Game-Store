@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.API.Repositories;
 
-public class EntityFrameworkGamesRepositoryn : IGamesRepository
+public class EntityFrameworkGamesRepository : IGamesRepository
 {
     private readonly GameStoreContext dbContext;
 
-    public EntityFrameworkGamesRepositoryn(GameStoreContext dbContext)
+    public EntityFrameworkGamesRepository(GameStoreContext dbContext)
     {
         this.dbContext = dbContext;
     }

@@ -89,18 +89,10 @@ public static class GamesRouter
         gameRoutes.MapPut(
             "/{id:int}", (IGamesRepository gamesRepository, int id, UpdateGameDto updatedGameDto) =>
             {
-                var updatedGame = new Game()
-                {
-                    Name = updatedGameDto.Name,
-                    Genre = updatedGameDto.Genre,
-                    Price = updatedGameDto.Price,
-                    ReleaseDate = updatedGameDto.ReleaseDate,
-                    ImageUri = updatedGameDto.ImageUri
-                };
-
+                Game existingGame;
                 try
                 {
-                    gamesRepository.GetById(id);
+                    existingGame = gamesRepository.GetById(id);
                 }
                 catch (InvalidOperationException e)
                 {
@@ -115,11 +107,16 @@ public static class GamesRouter
                     return Results.Problem($"internal server error : {e.Message}");
                 }
 
+                existingGame.Name = updatedGameDto.Name;
+                existingGame.Genre = updatedGameDto.Genre;
+                existingGame.Price = updatedGameDto.Price;
+                existingGame.ReleaseDate = updatedGameDto.ReleaseDate;
+                existingGame.ImageUri = updatedGameDto.ImageUri;
+
                 try
                 {
-                    updatedGame.Id = id;
-                    gamesRepository.Update(updatedGame);
-                    return Results.Ok(updatedGame);
+                    gamesRepository.Update(existingGame);
+                    return Results.Ok(existingGame);
                 }
                 catch (ArgumentNullException)
                 {
