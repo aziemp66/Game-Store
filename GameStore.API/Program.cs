@@ -2,6 +2,7 @@
 using GameStore.API.Data;
 using GameStore.API.Repositories;
 using GameStore.API.Routers;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,8 @@ var connString = builder.Configuration.GetConnectionString("GameStoreContext");
 builder.Services.AddSqlServer<GameStoreContext>(connString);
 
 var app = builder.Build();
+
+app.Services.InitializeDb();
 
 app.MapGet("/", () => "Hello World!");
 
