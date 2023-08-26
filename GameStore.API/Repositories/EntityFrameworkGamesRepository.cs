@@ -13,16 +13,16 @@ public class EntityFrameworkGamesRepository : IGamesRepository
         this.dbContext = dbContext;
     }
 
-    IEnumerable<Game> IGamesRepository.GetAll()
+    async Task<IEnumerable<Game>> IGamesRepository.GetAllAsync()
     {
-        return dbContext.Games.AsNoTracking().ToList();
+        return await dbContext.Games.AsNoTracking().ToListAsync();
     }
 
-    Game IGamesRepository.GetById(int id)
+    async Task<Game> IGamesRepository.GetByIdAsync(int id)
     {
         try
         {
-            return dbContext.Games.First(game => game.Id == id);
+            return await dbContext.Games.FirstAsync(game => game.Id == id);
         }
         catch (InvalidOperationException e)
         {
@@ -38,13 +38,13 @@ public class EntityFrameworkGamesRepository : IGamesRepository
         }
     }
 
-    Game IGamesRepository.Create(Game game)
+    async Task IGamesRepository.CreateAsync(Game game)
     {
         dbContext.Games.Add(game);
 
         try
         {
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException e)
         {
@@ -54,17 +54,15 @@ public class EntityFrameworkGamesRepository : IGamesRepository
         {
             throw new Exception($"internal server error : {e.Message}");
         }
-
-        return game;
     }
 
-    void IGamesRepository.Update(Game updatedGame)
+    async Task IGamesRepository.UpdateAsync(Game updatedGame)
     {
         dbContext.Games.Update(updatedGame);
 
         try
         {
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException e)
         {
@@ -76,11 +74,11 @@ public class EntityFrameworkGamesRepository : IGamesRepository
         }
     }
 
-    void IGamesRepository.Delete(int id)
+    async Task IGamesRepository.DeleteAsync(int id)
     {
         try
         {
-            dbContext.Games.Where(game => game.Id == id).ExecuteDelete();
+            await dbContext.Games.Where(game => game.Id == id).ExecuteDeleteAsync();
         }
         catch (Exception e)
         {

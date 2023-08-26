@@ -14,12 +14,12 @@ public static class GamesRouter
 
         gameRoutes.MapGet(
             "/",
-            (IGamesRepository gamesRepository) =>
+            async (IGamesRepository gamesRepository) =>
             {
                 try
                 {
-                    var games = gamesRepository.GetAll().Select(game => game.AsDto());
-                    return Results.Ok(games);
+                    var games = await gamesRepository.GetAllAsync();
+                    return Results.Ok(games.Select(game => game.AsDto()));
                 }
                 catch (System.Exception)
                 {
@@ -31,12 +31,12 @@ public static class GamesRouter
         gameRoutes
             .MapGet(
                 "/{id:int}",
-                (IGamesRepository gamesRepository, int id) =>
+                async (IGamesRepository gamesRepository, int id) =>
                 {
                     try
                     {
-                        var game = gamesRepository.GetById(id).AsDto();
-                        return Results.Ok(game);
+                        var game = await gamesRepository.GetByIdAsync(id);
+                        return Results.Ok(game.AsDto());
                     }
                     catch (InvalidOperationException e)
                     {
@@ -56,7 +56,7 @@ public static class GamesRouter
 
         gameRoutes.MapPost(
             "/",
-            (IGamesRepository gamesRepository, CreateGameDto gameDto) =>
+            async (IGamesRepository gamesRepository, CreateGameDto gameDto) =>
             {
                 var game = new Game()
                 {
@@ -69,8 +69,8 @@ public static class GamesRouter
 
                 try
                 {
-                    var result = gamesRepository.Create(game);
-                    return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = result.Id }, result);
+                    await gamesRepository.CreateAsync(game);
+                    return Results.CreatedAtRoute(GetGameByIdRouteName, new { id = game.Id }, game);
                 }
                 catch (InvalidOperationException e)
                 {
@@ -87,12 +87,12 @@ public static class GamesRouter
             }
         );
         gameRoutes.MapPut(
-            "/{id:int}", (IGamesRepository gamesRepository, int id, UpdateGameDto updatedGameDto) =>
+            "/{id:int}", async (IGamesRepository gamesRepository, int id, UpdateGameDto updatedGameDto) =>
             {
                 Game existingGame;
                 try
                 {
-                    existingGame = gamesRepository.GetById(id);
+                    existingGame = await gamesRepository.GetByIdAsync(id);
                 }
                 catch (InvalidOperationException e)
                 {
@@ -115,7 +115,7 @@ public static class GamesRouter
 
                 try
                 {
-                    gamesRepository.Update(existingGame);
+                    await gamesRepository.UpdateAsync(existingGame);
                     return Results.Ok(existingGame);
                 }
                 catch (ArgumentNullException)
@@ -131,12 +131,12 @@ public static class GamesRouter
 
         gameRoutes.MapDelete(
             "/{id:int}",
-            (IGamesRepository gamesRepository, int id) =>
+            async (IGamesRepository gamesRepository, int id) =>
             {
                 Game game;
                 try
                 {
-                    game = gamesRepository.GetById(id);
+                    game = await gamesRepository.GetByIdAsync(id);
                 }
                 catch (InvalidOperationException e)
                 {
@@ -153,7 +153,7 @@ public static class GamesRouter
 
                 try
                 {
-                    gamesRepository.Delete(id);
+                    await gamesRepository.DeleteAsync(id);
                     return Results.Ok();
                 }
                 catch (ArgumentNullException e)

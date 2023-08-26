@@ -53,16 +53,16 @@ public class InMemGamesRepository : IGamesRepository
             }
         };
 
-    public IEnumerable<Game> GetAll()
+    public async Task<IEnumerable<Game>> GetAllAsync()
     {
-        return games;
+        return await Task.FromResult<IEnumerable<Game>>(games);
     }
 
-    public Game GetById(int id)
+    public async Task<Game> GetByIdAsync(int id)
     {
         try
         {
-            return games.First(game => game.Id == id);
+            return await Task.FromResult(games.First(game => game.Id == id));
         }
         catch (InvalidOperationException e)
         {
@@ -78,21 +78,21 @@ public class InMemGamesRepository : IGamesRepository
         }
     }
 
-    public Game Create(Game game)
+    public async Task CreateAsync(Game game)
     {
         if (!games.Any())
         {
             game.Id = 1;
             games.Add(game);
-            return game;
         }
 
         game.Id = games.Max(game => game.Id) + 1;
         games.Add(game);
-        return game;
+
+        await Task.CompletedTask;
     }
 
-    public void Update(Game updatedGame)
+    public async Task UpdateAsync(Game updatedGame)
     {
         int index;
         try
@@ -108,9 +108,11 @@ public class InMemGamesRepository : IGamesRepository
             throw new Exception($"internal server error : {e.Message}");
         }
         games[index] = updatedGame;
+
+        await Task.CompletedTask;
     }
 
-    public void Delete(int id)
+    public async Task DeleteAsync(int id)
     {
         int index;
         try
@@ -126,5 +128,7 @@ public class InMemGamesRepository : IGamesRepository
             throw new Exception($"internal server error : {e.Message}");
         }
         games.RemoveAt(index);
+
+        await Task.CompletedTask;
     }
 }
